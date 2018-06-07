@@ -1,0 +1,19 @@
+{
+    "name": "laudirbispo/classname",
+    "description": "A simple class to get object names",
+    "keywords": ["Class_name, get_class"],
+    "type": "library",
+	"version": "1.0.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Laudir Bispo",
+            "email": "laudirbispo@outlook.com",
+            "homepage": "https://www.facebook.com/laudirbispo"
+        }
+    ],
+    "autoload": {
+        "psr-4": {"laudirbispo\\classname\\": "src"}
+    }
+
+}
