@@ -1,7 +1,7 @@
 {
     "name": "laudirbispo/classname",
     "description": "A simple class to get object names",
-    "keywords": ["Class_name, get_class"],
+    "keywords": ["Classname"],
     "type": "library",
 	"version": "1.0.0",
     "license": "MIT",
