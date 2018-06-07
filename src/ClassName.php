@@ -1,5 +1,5 @@
 <?php declare(strict_types=1);
-namespace laudirbispo\ClassName;
+namespace laudirbispo\classname;
 
 /**
  * Copyright (c) Laudir Bispo  (laudirbispo@outlook.com)
