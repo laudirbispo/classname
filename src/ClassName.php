@@ -1,6 +1,5 @@
 <?php declare(strict_types=1);
 namespace laudirbispo\ClassName;
-
 /**
  * Copyright (c) Laudir Bispo  (laudirbispo@outlook.com)
  *
@@ -10,6 +9,7 @@ namespace laudirbispo\ClassName;
  *
  * @copyright     (c) Laudir Bispo  (laudirbispo@outlook.com)
  * @license       https://opensource.org/licenses/mit-license.php MIT License
+ * @version       1.2.1
  *
  * @package laudirbispo/classname - This file is part of the Uploader package. 
  */
@@ -30,14 +30,17 @@ final class ClassName
 			return trim(get_class($object), '\\');
 		
 		throw new \InvalidArgumentException(
-			sprintf("[%s]: Esperavamos um objeto ou uma string, recebemos um(a) %s.", __CLASS__, gettype()($object))
+			sprintf("[%s]: Esperavamos um objeto ou uma string, recebemos um(a) %s.", __CLASS__, gettype($object))
 		);
 	}
 	
 	public static function namespace($object)
 	{
-		if (!is_object($object))
-			throw new \InvalidArgumentException(sprintf("s% não é um objeto.", $object));
+		if (null === $object || empty($object)) {
+           throw new \InvalidArgumentException(
+                sprintf("[%s]: Esperavamos um objeto ou uma string, recebemos um(a) %s.", __CLASS__, gettype($object))
+            ); 
+        }
 		
 		$parts = explode('\\', self::full($object));
 		array_pop($parts);
@@ -53,7 +56,7 @@ final class ClassName
 	{
         if (null === $object || empty($object)) {
            throw new \InvalidArgumentException(
-                sprintf("[%s]: Esperavamos um objeto ou uma string, recebemos um(a) %s.", __CLASS__, gettype()($object))
+                sprintf("[%s]: Esperavamos um objeto ou uma string, recebemos um(a) %s.", __CLASS__, gettype($object))
             ); 
         }
 		return str_replace('\\', '.', self::full($object));
@@ -63,7 +66,7 @@ final class ClassName
 	{
         if (null === $object || empty($object)) {
            throw new \InvalidArgumentException(
-                sprintf("[%s]: Esperavamos um objeto ou uma string, recebemos um(a) %s.", __CLASS__, gettype()($object))
+                sprintf("[%s]: Esperavamos um objeto ou uma string, recebemos um(a) %s.", __CLASS__, gettype($object))
             ); 
         }
         
@@ -80,7 +83,7 @@ final class ClassName
     {
         if (null === $object || empty($object)) {
            throw new \InvalidArgumentException(
-                sprintf("[%s]: Esperavamos um objeto ou uma string, recebemos um(a) %s.", __CLASS__, gettype()($object))
+                sprintf("[%s]: Esperavamos um objeto ou uma string, recebemos um(a) %s.", __CLASS__, gettype($object))
             ); 
         }
         return str_replace('\\', '/', self::full($object));
@@ -95,10 +98,17 @@ final class ClassName
     {
         if (null === $object || empty($object)) {
            throw new \InvalidArgumentException(
-                sprintf("[%s]: Esperavamos um objeto ou uma string, recebemos um(a) %s.", __CLASS__, gettype()($object))
+                sprintf("[%s]: Esperavamos um objeto ou uma string, recebemos um(a) %s.", __CLASS__, gettype($object))
             ); 
         }
-        $parent = trim(get_parent_class($object), '\\');
+        
+        $parent = get_parent_class($object);
+        if (!$parent) {
+            return null;
+        } else {
+            $parent = trim($parent, '\\');
+        }
+        
         if ($returns === 'full') {
             return self::full($parent);
         } else if ($returns === 'short') {
