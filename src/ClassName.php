@@ -86,4 +86,30 @@ final class ClassName
         return str_replace('\\', '/', self::full($object));
     }
     
+    /**
+	 * Retrieves the name of the parent class for object or class
+	 * @param object|string $object
+	 * @return string|null
+	 */
+    public static function getParent($object, string $returns = 'full') 
+    {
+        if (null === $object || empty($object)) {
+           throw new \InvalidArgumentException(
+                sprintf("[%s]: Esperavamos um objeto ou uma string, recebemos um(a) %s.", __CLASS__, gettype()($object))
+            ); 
+        }
+        $parent = trim(get_parent_class($object), '\\');
+        if ($returns === 'full') {
+            return self::full($parent);
+        } else if ($returns === 'short') {
+            return self::short($parent);
+        } else if ($returns === 'canonical') {
+            return self::canonical($parent);
+        } else if ($returns === 'namespace') {
+            return self::namespace($object);
+        } else {
+            return $parent;
+        }
+    }
+    
 }
