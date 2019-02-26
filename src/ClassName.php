@@ -1,5 +1,6 @@
 <?php declare(strict_types=1);
-namespace libs\laudirbispo\Route;
+namespace laudirbispo\ClassName;
+
 /**
  * Copyright (c) Laudir Bispo  (laudirbispo@outlook.com)
  *
@@ -8,108 +9,81 @@ namespace libs\laudirbispo\Route;
  * Redistributions of files must retain the above copyright notice.
  *
  * @copyright     (c) Laudir Bispo  (laudirbispo@outlook.com)
- * @version       1.1.0
  * @license       https://opensource.org/licenses/mit-license.php MIT License
- * @package       laudirbispo\Route
+ *
+ * @package laudirbispo/classname - This file is part of the Uploader package. 
  */
-use laudirbispo\classname\ClassName;
 
-class EasyRouter 
+final class ClassName 
 {
 	/**
-	 * Routes pattern
-	 *
-	 * @var array
+	 * Full name the class
+	 * @param object|string $object
+	 * @return string
 	 */
-	protected $routes = [];
-	
-	protected $baseDir;
-	
-	public function __construct ($baseDir = null) 
+	public static function full($object)
 	{
-		if (null === $baseDir)
-			$baseDir = $_SERVER['DOCUMENT_ROOT'];
+		if (is_string($object)) 
+			return str_replace('.', '\\', $object);
 		
-		$this->baseDir = $baseDir;
-	}
-	
-	/**
-	 * Add to Routes
-	 *
-	 * @param $patterns (mixed) string|array
-	 * @param $callback (mixed) string|closure
-	 * @return void
-	 */
-	public function add($patterns, $callback) : void
-	{
-		if (is_array($patterns)) {
-			foreach ($patterns as $pattern) {
-				$this->addRoute($pattern, $callback);
-			}
-		} else if (is_string($patterns)) {
-			$this->addRoute($patterns, $callback);
-		}
-		return;
-	}
-	
-	/**
-	 * Add Route
-	 */
-	private function addRoute($pattern, $callback)
-	{
-		if (!is_string($pattern)) 
-			throw new Exceptions\InvalidRoute('Rota inválida: ' . $pattern);
+		if (is_object($object)) 
+			return trim(get_class($object), '\\');
 		
-		$pattern = '/^' . str_replace('/', '\/', $pattern) . '$/';
-		if (!isset($this->routes[$pattern]))
-			$this->routes[$pattern] = $callback;
+		throw new \InvalidArgumentException(
+			sprintf("[%s]: Esperavamos um objeto ou uma string, recebemos um(a) %s.", __CLASS__, gettype()($object))
+		);
 	}
 	
-	/**
-	 * Check if exists Route pattern
-	 *
-	 * @param $route (string) 
-	 */
-	public function hasRoute(string $pattern) : bool
+	public static function namespace($object)
 	{
-		$pattern = '/^' . str_replace('/', '\/', $pattern) . '$/';
-		return isset($this->routes[$pattern]);
+		if (!is_object($object))
+			throw new \InvalidArgumentException(sprintf("s% não é um objeto.", $object));
+		
+		$parts = explode('\\', self::full($object));
+		array_pop($parts);
+		return implode('\\', $parts);
 	}
 	
 	/**
-	 * Execute the Route
-	 *
-	 * @param $url (string) - 
-	 * 
+	 * Canonical class name of an object, of the form "My.Namespace.MyClass"
+	 * @param object|string $object
+	 * @return string
 	 */
-	public function execute(string $url = '/') 
+	public static function canonical($object) 
+	{
+        if (null === $object || empty($object)) {
+           throw new \InvalidArgumentException(
+                sprintf("[%s]: Esperavamos um objeto ou uma string, recebemos um(a) %s.", __CLASS__, gettype()($object))
+            ); 
+        }
+		return str_replace('\\', '.', self::full($object));
+	}
+	
+	public static function short($object) 
+	{
+        if (null === $object || empty($object)) {
+           throw new \InvalidArgumentException(
+                sprintf("[%s]: Esperavamos um objeto ou uma string, recebemos um(a) %s.", __CLASS__, gettype()($object))
+            ); 
+        }
+        
+		$parts = explode('\\', self::full($object));
+    	return end($parts);
+	}
+    
+    /**
+	 * Path to class file "namespace1/namespace2/MyClass"
+	 * @param object|string $object
+	 * @return string
+	 */
+    public static function path($object) 
     {
-		foreach ($this->routes as $pattern => $callback) 
-        {	
-			if (preg_match($pattern, $url, $params)) {
-                if (is_string($callback) && strpos($callback, '::'))  {
-                    list($controller, $method) = explode('::', $callback);
-					// Check if controllers exists
-					$classname = ClassName::path($controller);
-					$filename = $this->baseDir .'/'. $classname . '.php';
-					if (!is_readable($filename)) {
-                        throw new Exceptions\ControllerDoesNotExists(
-							sprintf("Controller [%s] não existe ou não foi encontrado.", $controller)
-						);
-                    }
-					if (!method_exists($controller, $method)) {
-						throw new Exceptions\MethodDoesNotExists(
-							sprintf("Método [%s], não existe no controller [%s].", $method, $controller)
-						);
-                    }
-                    $callback = array(new $controller, $method);
-                }
-				array_shift($params);
-				return call_user_func_array($callback, array_values($params));
-			}
-		}
-		
-		throw new Exceptions\RouteNotFound('Nenhuma rota registrada para o endereço atual.');
-	}
-
+        if (null === $object || empty($object)) {
+           throw new \InvalidArgumentException(
+                sprintf("[%s]: Esperavamos um objeto ou uma string, recebemos um(a) %s.", __CLASS__, gettype()($object))
+            ); 
+        }
+        return str_replace('\\', '/', self::full($object));
+    }
+    
 }
