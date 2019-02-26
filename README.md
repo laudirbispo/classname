@@ -45,6 +45,9 @@ var_dump(ClassName::getParent($exampleClass, string $return = 'full'));
 
 ```
 
+ > It's really very simple
+ 
+
 ### Author
 
 Laudir Bispo - <laudirbispo@outlook.com> - <https://twitter.com/laudir_bispo><br />
