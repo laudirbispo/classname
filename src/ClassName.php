@@ -1,6 +1,5 @@
 <?php declare(strict_types=1);
-namespace laudirbispo\classname;
-
+namespace libs\laudirbispo\Route;
 /**
  * Copyright (c) Laudir Bispo  (laudirbispo@outlook.com)
  *
@@ -9,52 +8,108 @@ namespace laudirbispo\classname;
  * Redistributions of files must retain the above copyright notice.
  *
  * @copyright     (c) Laudir Bispo  (laudirbispo@outlook.com)
+ * @version       1.1.0
  * @license       https://opensource.org/licenses/mit-license.php MIT License
- *
- * @package laudirbispo/classname - This file is part of the Uploader package. 
+ * @package       laudirbispo\Route
  */
+use laudirbispo\classname\ClassName;
 
-final class ClassName 
+class EasyRouter 
 {
 	/**
-	 * Full name the class
-	 * @param object|string $object
-	 * @return string
+	 * Routes pattern
+	 *
+	 * @var array
 	 */
-	public static function full ($object)
-	{
-		if (is_string($object)) 
-			return str_replace('.', '\\', $object);
-		
-		if (is_object($object)) 
-			return trim(get_class($object), '\\');
-		
-		throw new \InvalidArgumentException(sprintf("Esperado um objeto ou uma string, recebemos %s.", gettype($object)));
-	}
+	protected $routes = [];
 	
-	public static function namespace ($object)
+	protected $baseDir;
+	
+	public function __construct ($baseDir = null) 
 	{
-		if (!is_object($object))
-			throw new \InvalidArgumentException(sprintf("s% não é um objeto.", $object));
+		if (null === $baseDir)
+			$baseDir = $_SERVER['DOCUMENT_ROOT'];
 		
-		$parts = explode('\\', self::full($object));
-		array_pop($parts);
-		return implode('\\', $parts);
+		$this->baseDir = $baseDir;
 	}
 	
 	/**
-	 * Canonical class name of an object, of the form "My.Namespace.MyClass"
-	 * @param object|string $object
-	 * @return string
+	 * Add to Routes
+	 *
+	 * @param $patterns (mixed) string|array
+	 * @param $callback (mixed) string|closure
+	 * @return void
 	 */
-	public static function canonical ($object)
+	public function add($patterns, $callback) : void
 	{
-		return str_replace('\\', '.', self::full($object));
+		if (is_array($patterns)) {
+			foreach ($patterns as $pattern) {
+				$this->addRoute($pattern, $callback);
+			}
+		} else if (is_string($patterns)) {
+			$this->addRoute($patterns, $callback);
+		}
+		return;
 	}
 	
-	public static function short ($object)
+	/**
+	 * Add Route
+	 */
+	private function addRoute($pattern, $callback)
 	{
-		$parts = explode('\\', self::full($object));
-    	return end($parts);
+		if (!is_string($pattern)) 
+			throw new Exceptions\InvalidRoute('Rota inválida: ' . $pattern);
+		
+		$pattern = '/^' . str_replace('/', '\/', $pattern) . '$/';
+		if (!isset($this->routes[$pattern]))
+			$this->routes[$pattern] = $callback;
 	}
+	
+	/**
+	 * Check if exists Route pattern
+	 *
+	 * @param $route (string) 
+	 */
+	public function hasRoute(string $pattern) : bool
+	{
+		$pattern = '/^' . str_replace('/', '\/', $pattern) . '$/';
+		return isset($this->routes[$pattern]);
+	}
+	
+	/**
+	 * Execute the Route
+	 *
+	 * @param $url (string) - 
+	 * 
+	 */
+	public function execute(string $url = '/') 
+    {
+		foreach ($this->routes as $pattern => $callback) 
+        {	
+			if (preg_match($pattern, $url, $params)) {
+                if (is_string($callback) && strpos($callback, '::'))  {
+                    list($controller, $method) = explode('::', $callback);
+					// Check if controllers exists
+					$classname = ClassName::path($controller);
+					$filename = $this->baseDir .'/'. $classname . '.php';
+					if (!is_readable($filename)) {
+                        throw new Exceptions\ControllerDoesNotExists(
+							sprintf("Controller [%s] não existe ou não foi encontrado.", $controller)
+						);
+                    }
+					if (!method_exists($controller, $method)) {
+						throw new Exceptions\MethodDoesNotExists(
+							sprintf("Método [%s], não existe no controller [%s].", $method, $controller)
+						);
+                    }
+                    $callback = array(new $controller, $method);
+                }
+				array_shift($params);
+				return call_user_func_array($callback, array_values($params));
+			}
+		}
+		
+		throw new Exceptions\RouteNotFound('Nenhuma rota registrada para o endereço atual.');
+	}
+
 }
